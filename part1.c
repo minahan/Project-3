@@ -8,7 +8,7 @@ int conv2D(float* in, float* out, int data_size_X, int data_size_Y,
     int kern_cent_X = (KERNX - 1)/2;
     // the y coordinate of the kernel's center
     int kern_cent_Y = (KERNY - 1)/2;
-    
+    //hi
     // main convolution loop
 	for(int x = 0; x < data_size_X; x++){ // the x coordinate of the output location we're focusing on
 		for(int y = 0; y < data_size_Y; y++){ // the y coordinate of theoutput location we're focusing on
