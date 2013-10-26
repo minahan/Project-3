@@ -34,36 +34,34 @@ int conv2D(float* in, float* out, int data_size_X, int data_size_Y,
 	for(int y = 1; y < new_Y-1; y++) { // the y coordinate of theoutput location we're focusing on
 		for(int x = 1; x < new_X-1; x++){ // the x coordinate of the output location we're focusing on
 			//*remember to flip the kernel coordinates
-			out[(x-1) +(y-1)*data_size_X] = //bot right 0
-				__m128 kern_vect, padded_vect, sum_vect;		
-				float[4] for_padded = {
-					padded[(x+1)*new_Y + (y+1)],
-					padded[(x)*new_Y + (y+1)],
-					padded[(x-1)*new_Y + (y+1)],
-					padded[(x+1)*new_Y + (y)]
-				}
-				/*for_padded[0] = padded[(x+1)*new_Y + (y+1)];
-				for_padded[1] = padded[(x)*new_Y + (y+1)];
-				for_padded[2] = padded[(x-1)*new_Y + (y+1)];
-				for_padded[3] = padded[(x+1)*new_Y + (y)];*/
-				padded_vect = _mm_load1_ps((__m128 *)for_padded);
-				kern_vect = _mm_load1_ps(kernel);
-				sum_vect = _mm_mul_ps(kern_vect, padded_vect);
-				
-				kern_vect = _mm_load1_ps(kernel+4);
-				for_padded[0] = padded[(x)*new_Y + (y)];
-				for_padded[1] = padded[(x-1)*new_Y + (y)];
-				for_padded[2] = padded[(x+1)*new_Y + (y-1)];
-				for_padded[3] = padded[(x)*new_Y + (y-1)];
-				padded_vect = _mm_load1_ps((__m128 *)for_padded);
-				kern_vect = _mm_mul_ps(kern_vect, padded_vect);
-				sum_vect = _mm_add_ps(sum_vect, kern_vect);
-				
-				float[4] final_sum_arr = {0.0f, 0.0f, 0.0f, 0.0f};
-				 _mm_storeu_ps((__m128 *)final_sum_arr, sum_vect);
-				out[(x-1) +(y-1)*data_size_X] = final_sum_arr[0] + final_sum_arr[1] + final_sum_arr[2] + final_sum_arr[3]
-					+ kernel[8] * padded[(x-1)*new_Y + (y-1)];
-				/*
+		__m128 kern_vect, padded_vect, sum_vect;                
+                                float for_padded[4] = {
+                                        padded[(x+1)*new_Y + (y+1)],
+                                        padded[(x)*new_Y + (y+1)],
+                                        padded[(x-1)*new_Y + (y+1)],
+                                        padded[(x+1)*new_Y + (y)]
+                                };
+                                /*for_padded[0] = padded[(x+1)*new_Y + (y+1)];
+                                for_padded[1] = padded[(x)*new_Y + (y+1)];
+                                for_padded[2] = padded[(x-1)*new_Y + (y+1)];
+                                for_padded[3] = padded[(x+1)*new_Y + (y)];*/
+                                padded_vect = _mm_load1_ps((__m128 *)for_padded);
+                                kern_vect = _mm_load1_ps(kernel);
+                                sum_vect = _mm_mul_ps(kern_vect, padded_vect);
+                                
+                                kern_vect = _mm_load1_ps(kernel+4);
+                                for_padded[0] = padded[(x)*new_Y + (y)];
+                                for_padded[1] = padded[(x-1)*new_Y + (y)];
+                                for_padded[2] = padded[(x+1)*new_Y + (y-1)];
+                                for_padded[3] = padded[(x)*new_Y + (y-1)];
+                                padded_vect = _mm_load1_ps((__m128 *)for_padded);
+                                kern_vect = _mm_mul_ps(kern_vect, padded_vect);
+                                sum_vect = _mm_add_ps(sum_vect, kern_vect);
+                                
+                                float final_sum_arr[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                                 _mm_storeu_ps((__m128 *)final_sum_arr, sum_vect);
+                                out[(x-1) +(y-1)*data_size_X] = final_sum_arr[0] + final_sum_arr[1] + final_sum_arr[2] + final_sum_arr[3]
+                                        + kernel[8] * padded[(x-1)*new_Y + (y-1)];/*
 				
 							  kernel[0] * padded[(x+1)*new_Y + (y+1)]
 							+ kernel[1] * padded[(x)*new_Y + (y+1)]
