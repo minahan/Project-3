@@ -15,23 +15,22 @@ int conv2D(float* in, float* out, int data_size_X, int data_size_Y,
     for each column until data_size_Y: first elt = 0, copy contents of from in[] , then last elt = 0 
 	*/
     	
-	int new_X = data_size_X + 2;
+    int new_X = data_size_X + 2;
     int new_Y = data_size_Y + 2;
     float padded[new_X * new_Y];
-    int curr = 0, in_count = 0;
-    for (; curr < new_X; curr++) //filling first col with 0s
-        padded[curr] = 0;
-    for (int i = 0; i < data_size_Y; i++) { //the amount of cols of input
+	int curr = 0, in_count = 0;
+    for (; curr < new_X; curr++)
+            padded[curr] = 0;
+    for (int i = 0; i < data_size_Y; i++) { //the amount of columns of input
         padded[curr] = 0;
         curr++;
-        for (int j = 0; j < data_size_X; j++, curr++, in_count++) {
-            padded[curr] = in[in_count];
-        }
+        for (int j = 0; j < (data_size_X)/4*4; j+=4, curr+=4, in_count+=4)
+            _mm_storeu_ps((padded + curr), _mm_loadu_ps((float*)(in + in_count)));
         padded[curr] = 0;
         curr++;
     }
     int rem = curr;
-    for (; curr < new_X + rem; curr++) //filling the last col with 0s
+    for (; curr < new_X + rem; curr++)
         padded[curr] = 0;
 
     // main convolution loop
