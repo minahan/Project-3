@@ -1,4 +1,5 @@
 #include <emmintrin.h>
+#include <nmmintrin.h>
 #define KERNX 3 //this is the x-size of the kernel. It will always be odd.
 #define KERNY 3 //this is the y-size of the kernel. It will always be odd.
 int conv2D(float* in, float* out, int data_size_X, int data_size_Y,
