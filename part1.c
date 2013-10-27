@@ -35,7 +35,7 @@ int conv2D(float* in, float* out, int data_size_X, int data_size_Y,
 	*/
 	int new_X = data_size_X+2;
     int new_Y = data_size_Y+2;
-    float * padded = malloc(new_X * new_Y);
+    float padded[new_X * new_Y];
 	/*if (padded == 0) {
 			printf("ERROR: Out of memory\n");
 			return 1; }*/
@@ -75,8 +75,20 @@ int conv2D(float* in, float* out, int data_size_X, int data_size_Y,
 
 	//You should use SSE vectors to calculate 4-pixels of output per iteration.
 
+	__m128 k8 = _mm_set_ps1(kernel[8]);
+	__m128 k7 = _mm_set_ps1(kernel[7]);
+	__m128 k6 = _mm_set_ps1(kernel[6]);
+	__m128 k5 = _mm_set_ps1(kernel[5]);
+	__m128 k4 = _mm_set_ps1(kernel[4]);
+	__m128 k3 = _mm_set_ps1(kernel[3]);
+	__m128 k2 = _mm_set_ps1(kernel[2]);
+	__m128 k1 = _mm_set_ps1(kernel[1]);
+	__m128 k0 = _mm_set_ps1(kernel[0]);
+
+	__m128 i = _mm_set_ps(0.0, 1.0, 2.0, 3.0);
+
 	for(int y = 1; y < new_Y-1; y++) { // the y coordinate of theoutput location we're focusing on
-		for(int x = 1; x < new_X-1; x++) { // the x coordinate of the output location we're focusing on
+		for(int x = 1; x < new_X-1; x+=4) { // the x coordinate of the output location we're focusing on
 		//*remember to flip the kernel coordinates
 		/*
 		float kern[9] = { kernel[8], kernel[5], kernel[2],
@@ -97,7 +109,7 @@ int conv2D(float* in, float* out, int data_size_X, int data_size_Y,
 			printf("1 in %f padded %f \n", in[(x-1)*data_size_Y +(y)], padded[(x)*new_Y + (y+1)]);
 			printf("3 in %f padded %f \n", in[(x)*data_size_Y +(y-1)], padded[(x+1)*new_Y + (y)]);
 			printf("4 in %f padded %f \n", in[(x-1)*data_size_Y +(y-1)], padded[(x)*new_Y + (y)]);
-		}*/
+		}
 		out[(x-1) + (y-1)*data_size_X] =
 						  kernel[8] * padded[(x-1) + (y-1)*new_X]
 						+ kernel[5] * padded[(x-1) + (y)*new_X]	
@@ -108,13 +120,42 @@ int conv2D(float* in, float* out, int data_size_X, int data_size_Y,
 						+ kernel[6] * padded[(x+1) + (y-1)*new_X]
 						+ kernel[3] * padded[(x+1) + (y)*new_X]
 						+ kernel[0] * padded[(x+1) + (y+1)*new_X];
+		*/
+		__m128 l8 = _mm_set_ps1((-1 + (y-1)*new_X)); 
+		__m128 l7 = _mm_set_ps1(((y-1)*new_X));
+		__m128 l6 = _mm_set_ps1((1 + (y-1)*new_X));
+		__m128 l5 = _mm_set_ps1((-1 + (y)*new_X));
+		__m128 l4 = _mm_set_ps1(((y)*new_X));
+		__m128 l3 = _mm_set_ps1((+1 + (y)*new_X));
+		__m128 l2 = _mm_set_ps1((-1 + (y+1)*new_X));
+		__m128 l1 = _mm_set_ps1(((y+1)*new_X));
+		__m128 l0 = _mm_set_ps1((+1 + (y+1)*new_X));
+		printf("l0 %f, %f, %f, %f \n", l0);
 
-
+		__m128 n0 = _mm_mul_ps(k0, _mm_add_ps(_mm_loadu_ps((__m128*)padded), (_mm_add_ps(i, l0))));
+		printf("n0 %f, %f, %f, %f \n", n0);
+		__m128 n1 = _mm_mul_ps(k1, _mm_add_ps(_mm_loadu_ps((__m128*)padded), (_mm_add_ps(i, l1))));
+		__m128 n2 = _mm_mul_ps(k2, _mm_add_ps(_mm_loadu_ps((__m128*)padded), (_mm_add_ps(i, l2))));
+		__m128 n3 = _mm_mul_ps(k3, _mm_add_ps(_mm_loadu_ps((__m128*)padded), (_mm_add_ps(i, l3))));
+		__m128 n4 = _mm_mul_ps(k4, _mm_add_ps(_mm_loadu_ps((__m128*)padded), (_mm_add_ps(i, l4))));
+		__m128 n5 = _mm_mul_ps(k5, _mm_add_ps(_mm_loadu_ps((__m128*)padded), (_mm_add_ps(i, l5))));
+		__m128 n6 = _mm_mul_ps(k6, _mm_add_ps(_mm_loadu_ps((__m128*)padded), (_mm_add_ps(i, l6))));
+		__m128 n7 = _mm_mul_ps(k7, _mm_add_ps(_mm_loadu_ps((__m128*)padded), (_mm_add_ps(i, l7))));
+		__m128 n8 = _mm_mul_ps(k8, _mm_add_ps(_mm_loadu_ps((__m128*)padded), (_mm_add_ps(i, l8))));
+		
+		__m128 c1 = _mm_add_ps(n8, n5); 
+		c1 = _mm_add_ps(c1, n2); //c1 = column1 sums
+		__m128 c2 = _mm_add_ps(n7, n4);
+		c2 = _mm_add_ps(c2, n1); //c2 = column2 sums
+		__m128 c3 = _mm_add_ps(n6, n3); 
+		c3 = _mm_add_ps(c3, n0); //c3 = column3 sums
+		__m128 r_vec = _mm_add_ps(c1, c2); // r_vec is the sum of the column sums
+		r_vec = _mm_add_ps(r_vec, c3); 
+		_mm_storeu_ps((out+(x-1)+(y-1)*data_size_X), r_vec); //stores result vector into x, x+1, x+2, x+3
 		//printf("FINAL: %f \n", out[(x-1) + (y-1)*data_size_X]);
+		
 		}
 	}
-	free(out);
-	free(padded);
 	return 1;
 
 }
