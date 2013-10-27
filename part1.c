@@ -10,12 +10,12 @@ int conv2D(float* in, float* out, int data_size_X, int data_size_Y,
     // the y coordinate of the kernel's center
     int kern_cent_Y = (KERNY - 1)/2;
     
-    /* matrix padding - make a new matrix of data_size+2 * data_size+2
+    /*matrix padding - make a new matrix of data_size+2 * data_size+2
     fill wherever x=0, y=0, x=data_size, y=data_size with 0s; 
     from address 0 to data_size+1, fill with 0s
     first elt = 0, copy contents of in[row2] , then 0 
     repeat until in[row data_size-1]
-    fill last row [data_size+2-1] with 0s
+    fill last row [data_size+2-1] with 0s 
 
     int new_X = data_size_X + ((KERNX-1)/2)*2;
     int new_Y = data_size_Y + ((KERNY-1)/2)*2;
@@ -34,13 +34,29 @@ int conv2D(float* in, float* out, int data_size_X, int data_size_Y,
 		}
 	}
 	*/
+	//printf("hi");
 	int new_X = data_size_X+2;
     int new_Y = data_size_Y+2;
     float padded[new_X * new_Y];
+	int curr=0, in_count=0;
+	for (; curr < new_X; curr++)
+		padded[curr] = 0;
+	for (int i = 0; i < data_size_Y; i++) { //the amount of cols of input
+		padded[curr] = 0;
+		curr++;
+		for (int j = 0; j < data_size_X; j++, curr++, in_count++) { //can do SSE because it's in multiples of 4
+			padded[curr] = in[in_count];
+		}
+		padded[curr] = 0;
+		curr++;
+	}
+	int rem = curr;
+	for (; curr < new_X + rem; curr++)
+		padded[curr] = 0;
 	/*if (padded == 0) {
 			printf("ERROR: Out of memory\n");
 			return 1; }*/
-	int curr = 0, in_count = 0;
+	/*int curr = 0, in_count = 0;
 	for (; curr < new_X; curr++)
 		padded[curr] = 0;
 	for (int i = 0; i < data_size_Y; i++) { //the amount of rows of input
@@ -53,6 +69,7 @@ int conv2D(float* in, float* out, int data_size_X, int data_size_Y,
 			_mm_storeu_ps((padded + curr + 8), _mm_loadu_ps((float*)(in + in_count + 8)));
 			_mm_storeu_ps((padded + curr + 12), _mm_loadu_ps((float*)(in + in_count + 12)));
 		}
+		//printf("mina");
 		int rem = j;
 		for (; j < (data_size_X-rem)/4*4; j+=4, curr+=4, in_count+=4) {
 			_mm_storeu_ps((padded + curr), _mm_loadu_ps((float*)(in + in_count)));
@@ -72,7 +89,7 @@ int conv2D(float* in, float* out, int data_size_X, int data_size_Y,
 	}*/
 
     // main convolution loop
-	printf("entering kernel loop");
+	//printf("entering kernel loop");
 
 	//You should use SSE vectors to calculate 4-pixels of output per iteration.
 	/*float k0[4] = { kernel[0], kernel[0], kernel[0], kernel[0] };
@@ -97,7 +114,9 @@ int conv2D(float* in, float* out, int data_size_X, int data_size_Y,
 	__m128 k0 = _mm_set_ps1(kernel[0]);
 
 	//__m128 i = _mm_set_ps(0.0, 1.0, 2.0, 3.0);
-	printf("hello");
+	//printf("hello");
+	
+	
 	for(int y = 1; y < new_Y-1; y++) { // the y coordinate of theoutput location we're focusing on
 		for(int x = 1; x < new_X-4; x+=4) { // the x coordinate of the output location we're focusing on
 		//*remember to flip the kernel coordinates
@@ -142,19 +161,21 @@ int conv2D(float* in, float* out, int data_size_X, int data_size_Y,
 		__m128 l1 = _mm_set_ps1(((y+1)*new_X));
 		__m128 l0 = _mm_set_ps1((+1 + (y+1)*new_X));
 		*/
-		printf("getting loc");
-		__m128 l8 = _mm_load_ps((float*)(padded + (x-1) + (y-1)*new_X)); //gets the next 8 pixels in vectors
-		__m128 l7 = _mm_load_ps((float*)(padded + (x) + (y-1)*new_X)); 
-		__m128 l6 = _mm_load_ps((float*)(padded + (x+1) + (y-1)*new_X)); 
-		__m128 l5 = _mm_load_ps((float*)(padded + (x-1) + (y)*new_X)); 
-		__m128 l4 = _mm_load_ps((float*)(padded + (x) + (y)*new_X)); 
-		__m128 l3 = _mm_load_ps((float*)(padded + (x+1) + (y)*new_X)); 
-		__m128 l2 = _mm_load_ps((float*)(padded + (x-1) + (y+1)*new_X)); 
-		__m128 l1 = _mm_load_ps((float*)(padded + (x) + (y+1)*new_X)); 
-		__m128 l0 = _mm_load_ps((float*)(padded + (x+1) + (y+1)*new_X)); 
+		//printf("getting loc");
+		
+	
+		__m128 l8 = _mm_loadu_ps((float*)(padded + (x-1) + (y-1)*new_X)); //gets the next 8 pixels in vectors
+		__m128 l7 = _mm_loadu_ps((float*)(padded + (x) + (y-1)*new_X)); 
+		__m128 l6 = _mm_loadu_ps((float*)(padded + (x+1) + (y-1)*new_X)); 
+		__m128 l5 = _mm_loadu_ps((float*)(padded + (x-1) + (y)*new_X)); 
+		__m128 l4 = _mm_loadu_ps((float*)(padded + (x) + (y)*new_X)); 
+		__m128 l3 = _mm_loadu_ps((float*)(padded + (x+1) + (y)*new_X)); 
+		__m128 l2 = _mm_loadu_ps((float*)(padded + (x-1) + (y+1)*new_X)); 
+		__m128 l1 = _mm_loadu_ps((float*)(padded + (x) + (y+1)*new_X)); 
+		__m128 l0 = _mm_loadu_ps((float*)(padded + (x+1) + (y+1)*new_X)); 
 		//printf("l0 %f, %f, %f, %f \n", l0);
 		//the 9 kernel*pixel vectors
-		printf("multiplying");
+		//printf("multiplying");
 		__m128 n0 = _mm_mul_ps(k0, l0); //multiplying the corresponding kernel to the pixel vectors
 		__m128 n1 = _mm_mul_ps(k1, l1);
 		__m128 n2 = _mm_mul_ps(k2, l2);
@@ -164,7 +185,7 @@ int conv2D(float* in, float* out, int data_size_X, int data_size_Y,
 		__m128 n6 = _mm_mul_ps(k6, l6);
 		__m128 n7 = _mm_mul_ps(k7, l7);
 		__m128 n8 = _mm_mul_ps(k8, l8);
-		printf("summing up");
+		//printf("summing up");
 		__m128 c1 = _mm_add_ps(n8, n5); 
 		c1 = _mm_add_ps(c1, n2); //c1 = column1 sums
 		__m128 c2 = _mm_add_ps(n7, n4);
@@ -176,7 +197,21 @@ int conv2D(float* in, float* out, int data_size_X, int data_size_Y,
 		_mm_storeu_ps((out+(x-1)+(y-1)*data_size_X), r_vec); //stores result vector into x, x+1, x+2, x+3
 		//printf("FINAL: %f %f %f %f \n", out[(x-1) + (y-1)*data_size_X], out[(x) + (y-1)*data_size_X], out[(x+1) + (y-1)*data_size_X], out[(x+2) + (y-1)*data_size_X]);
 		
-		}
+		/*
+	for(int y = 1; y < new_Y-1; y++) { // the y coordinate of theoutput location we're focusing on
+		for(int x = 1; x < new_X-1; x++){ // the x coordinate of the output location we're focusing on
+			//*remember to flip the kernel coordinates
+			out[(x-1) + (y-1)*data_size_X] =
+							  kernel[8] * padded[(x-1) + (y-1)*new_X]
+							+ kernel[5] * padded[(x-1) + (y)*new_X]	
+							+ kernel[2] * padded[(x-1) + (y+1)*new_X]
+							+ kernel[7] * padded[(x) + (y-1)*new_X]
+							+ kernel[4] * padded[(x) + (y)*new_X]
+							+ kernel[1] * padded[(x) + (y+1)*new_X]
+							+ kernel[6] * padded[(x+1) + (y-1)*new_X]
+							+ kernel[3] * padded[(x+1) + (y)*new_X]
+							+ kernel[0] * padded[(x+1) + (y+1)*new_X]; */
+	}
 	}
 	return 1;
 
