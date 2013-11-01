@@ -38,85 +38,99 @@ int conv2D(float* in, float* out, int data_size_X, int data_size_Y,
     for (; curr < new_X + rem; curr++)
         padded[curr] = 0;
 	*/
-
+    //printf("HI: %f \n", kernel[4]);
 
     // main convolution loop
     int x = 0, y = 0;
     //top left corner //x = 0, y = 0
     out[(x) + (y)*data_size_X] =
 		                        kernel[4] * in[(x) + (y)*data_size_X]
-		                        + kernel[1] * in[(x+1) + (y)*data_size_X]
-		                        + kernel[3] * in[(x) + (y+1)*data_size_X]
+		                        + kernel[3] * in[(x+1) + (y)*data_size_X]
+		                        + kernel[1] * in[(x) + (y+1)*data_size_X]
 		                        + kernel[0] * in[(x+1) + (y+1)*data_size_X];
+	/*printf("4: %f, out: %f \n", kernel[4], out[x + (y)*data_size_X]);
+	printf("1: %f, value: %f \n", kernel[1] * in[(x+1) + (y)*data_size_X], out[x + (y)*data_size_X]);
+	printf("3: %f, value: %f \n", kernel[3] * in[(x) + (y+1)*data_size_X], out[x + (y)*data_size_X]);
+	printf("0: %f, value: %f \n", kernel[0] * in[(x+1) + (y+1)*data_size_X], out[x + (y)*data_size_X]);
+
+	printf("in4: %f, value: %f \n", (in[(x) + (y)*data_size_X]), out[x + (y)*data_size_X]);
+	printf("in1: %f, value: %f \n", (in[(x+1) + (y)*data_size_X]), out[x + (y)*data_size_X]);
+	printf("in3: %f, value: %f \n", (in[(x) + (y+1)*data_size_X]), out[x + (y)*data_size_X]);
+	printf("in0: %f, value: %f \n", (in[(x+1) + (y+1)*data_size_X]), out[x + (y)*data_size_X]);*/
+
 	//bottom left corner
     x = data_size_X-1; //y = 0
 	out[(x) + (y)*data_size_X] =
-		                        kernel[7] * in[(x-1) + (y)*data_size_X]
+		                        kernel[5] * in[(x-1) + (y)*data_size_X]
 		                        + kernel[4] * in[(x) + (y)*data_size_X]
-		                        + kernel[6] * in[(x-1) + (y+1)*data_size_X]
-		                        + kernel[3] * in[(x) + (y+1)*data_size_X];
+		                        + kernel[2] * in[(x-1) + (y+1)*data_size_X]
+		                        + kernel[1] * in[(x) + (y+1)*data_size_X];
     //top right corner
 	y = data_size_Y - 1; x = 0;
 	out[(x) + (y)*data_size_X] =
-		                        kernel[5] * in[(x) + (y-1)*data_size_X]        
-		                        + kernel[2] * in[(x+1) + (y-1)*data_size_X]
+		                        kernel[7] * in[(x) + (y-1)*data_size_X]        
+		                        + kernel[6] * in[(x+1) + (y-1)*data_size_X]
 		                        + kernel[4] * in[(x) + (y)*data_size_X]
-		                        + kernel[1] * in[(x+1) + (y)*data_size_X];
+		                        + kernel[3] * in[(x+1) + (y)*data_size_X];
 	//bottom right corner
     x = data_size_X - 1; //y = data_size_Y-1
     out[(x) + (y)*data_size_X] =
 		                          kernel[8] * in[(x-1) + (y-1)*data_size_X]
-		                        + kernel[5] * in[(x) + (y-1)*data_size_X]        
-		                        + kernel[7] * in[(x-1) + (y)*data_size_X]
+		                        + kernel[7] * in[(x) + (y-1)*data_size_X]        
+		                        + kernel[5] * in[(x-1) + (y)*data_size_X]
 		                        + kernel[4] * in[(x) + (y)*data_size_X];
     
 
     //left column: x = 1 to data_size_X-2, y = 0
     y = 0;
+    //#pragma omp parallel for
 	for (x = 1; x < data_size_X-1; x++) {
 		out[(x) + (y)*data_size_X] =
-		                        kernel[7] * in[(x-1) + (y)*data_size_X]
+		                        kernel[5] * in[(x-1) + (y)*data_size_X]
 		                        + kernel[4] * in[(x) + (y)*data_size_X]
-		                        + kernel[1] * in[(x+1) + (y)*data_size_X]
-		                        + kernel[6] * in[(x-1) + (y+1)*data_size_X]
-		                        + kernel[3] * in[(x) + (y+1)*data_size_X]
+		                        + kernel[3] * in[(x+1) + (y)*data_size_X]
+		                        + kernel[2] * in[(x-1) + (y+1)*data_size_X]
+		                        + kernel[1] * in[(x) + (y+1)*data_size_X]
 		                        + kernel[0] * in[(x+1) + (y+1)*data_size_X];
 	//printf("LC: elt: %d, value: %f \n", x + (y)*data_size_X, out[x + (y)*data_size_X]);
 	}
 	//top row
 	x = 0;
+	//#pragma omp parallel for
 	for (y = 1; y < data_size_Y-1; y++) {
 		out[x + (y)*data_size_X] = 
-		                        kernel[5] * in[(x) + (y-1)*data_size_X]        
-		                        + kernel[2] * in[(x+1) + (y-1)*data_size_X]
+		                        kernel[7] * in[(x) + (y-1)*data_size_X]        
+		                        + kernel[6] * in[(x+1) + (y-1)*data_size_X]
 		                        + kernel[4] * in[(x) + (y)*data_size_X]
-		                        + kernel[1] * in[(x+1) + (y)*data_size_X]
-		                        + kernel[3] * in[(x) + (y+1)*data_size_X]
+		                        + kernel[3] * in[(x+1) + (y)*data_size_X]
+		                        + kernel[1] * in[(x) + (y+1)*data_size_X]
 		                        + kernel[0] * in[(x+1) + (y+1)*data_size_X];
 	//printf("TR: elt: %d, value: %f \n", x + (y)*data_size_X, out[x + (y)*data_size_X]);
 	}
 	//bottom row
     x = data_size_X-1;
+    //#pragma omp parallel for
     for (y = 1; y < data_size_Y-1; y++) {
 		out[x + (y)*data_size_X] = 
 								kernel[8] * in[(x-1) + (y-1)*data_size_X]
-		                        + kernel[5] * in[(x) + (y-1)*data_size_X]        
-		                        + kernel[7] * in[(x-1) + (y)*data_size_X]
+		                        + kernel[7] * in[(x) + (y-1)*data_size_X]        
+		                        + kernel[5] * in[(x-1) + (y)*data_size_X]
 		                        + kernel[4] * in[(x) + (y)*data_size_X]
-		                        + kernel[6] * in[(x-1) + (y+1)*data_size_X]
-		                        + kernel[3] * in[(x) + (y+1)*data_size_X];
+		                        + kernel[2] * in[(x-1) + (y+1)*data_size_X]
+		                        + kernel[1] * in[(x) + (y+1)*data_size_X];
 	//printf("BR: elt: %d, value: %f \n", x + (y)*data_size_X, out[x + (y)*data_size_X]);
 	}
     //right column
     y = data_size_Y-1;
+    //#pragma omp parallel for
     for (x = 1; x < data_size_X-1; x++) {
 		out[x + (y)*data_size_X] =
 		                          kernel[8] * in[(x-1) + (y-1)*data_size_X]
-		                        + kernel[5] * in[(x) + (y-1)*data_size_X]        
-		                        + kernel[2] * in[(x+1) + (y-1)*data_size_X]
-		                        + kernel[7] * in[(x-1) + (y)*data_size_X]
+		                        + kernel[7] * in[(x) + (y-1)*data_size_X]        
+		                        + kernel[6] * in[(x+1) + (y-1)*data_size_X]
+		                        + kernel[5] * in[(x-1) + (y)*data_size_X]
 		                        + kernel[4] * in[(x) + (y)*data_size_X]
-		                        + kernel[1] * in[(x+1) + (y)*data_size_X];
+		                        + kernel[3] * in[(x+1) + (y)*data_size_X];
 	//printf("RC: elt: %d, value: %f \n", x + (y)*data_size_X, out[x + (y)*data_size_X]);
 	}
 
@@ -130,20 +144,20 @@ int conv2D(float* in, float* out, int data_size_X, int data_size_Y,
 	__m128 k6 = _mm_set_ps1(kernel[6]);
 	__m128 k3 = _mm_set_ps1(kernel[3]);
 	__m128 k0 = _mm_set_ps1(kernel[0]);
-
+	//#pragma omp parallel for
 	for(int y = 1; y < data_size_Y-1; y++) { // the y coordinate of theoutput location we're focusing on
 		int x;
 		for(x = 1; x < data_size_X-4-1; x+=4) { // the x coordinate of the output location we're focusing on
 		//*remember to flip the kernel coordinates
 		//gets the next 9 pixels in vector form
 		__m128 l8 = _mm_loadu_ps((float*)(in + (x-1) + (y-1)*data_size_X)); 
-		__m128 l5 = _mm_loadu_ps((float*)(in + (x) + (y-1)*data_size_X)); 
-		__m128 l2 = _mm_loadu_ps((float*)(in + (x+1) + (y-1)*data_size_X));
-		__m128 l7 = _mm_loadu_ps((float*)(in + (x-1) + (y)*data_size_X)); 
+		__m128 l5 = _mm_loadu_ps((float*)(in + (x-1) + (y)*data_size_X)); 
+		__m128 l2 = _mm_loadu_ps((float*)(in + (x-1) + (y+1)*data_size_X));
+		__m128 l7 = _mm_loadu_ps((float*)(in + (x) + (y-1)*data_size_X)); 
 		__m128 l4 = _mm_loadu_ps((float*)(in + (x) + (y)*data_size_X));
-		__m128 l1 = _mm_loadu_ps((float*)(in + (x+1) + (y)*data_size_X)); 
-		__m128 l6 = _mm_loadu_ps((float*)(in + (x-1) + (y+1)*data_size_X)); 
-		__m128 l3 = _mm_loadu_ps((float*)(in + (x) + (y+1)*data_size_X)); 
+		__m128 l1 = _mm_loadu_ps((float*)(in + (x) + (y+1)*data_size_X)); 
+		__m128 l6 = _mm_loadu_ps((float*)(in + (x+1) + (y-1)*data_size_X)); 
+		__m128 l3 = _mm_loadu_ps((float*)(in + (x+1) + (y)*data_size_X)); 
 		__m128 l0 = _mm_loadu_ps((float*)(in + (x+1) + (y+1)*data_size_X)); 
 
 		//the 9 kernel*pixel vectors
@@ -173,13 +187,13 @@ int conv2D(float* in, float* out, int data_size_X, int data_size_Y,
 		for (; x < data_size_X - 1; x++) {
 			out[(x) + (y)*data_size_X] =
 				                          kernel[8] * in[(x-1) + (y-1)*data_size_X]
-				                        + kernel[5] * in[(x) + (y-1)*data_size_X]        
-				                        + kernel[2] * in[(x+1) + (y-1)*data_size_X]
-				                        + kernel[7] * in[(x-1) + (y)*data_size_X]
+				                        + kernel[5] * in[(x-1) + (y)*data_size_X]        
+				                        + kernel[2] * in[(x-1) + (y+1)*data_size_X]
+				                        + kernel[7] * in[(x) + (y-1)*data_size_X]
 				                        + kernel[4] * in[(x) + (y)*data_size_X]
-				                        + kernel[1] * in[(x+1) + (y)*data_size_X]
-				                        + kernel[6] * in[(x-1) + (y+1)*data_size_X]
-				                        + kernel[3] * in[(x) + (y+1)*data_size_X]
+				                        + kernel[1] * in[(x) + (y+1)*data_size_X]
+				                        + kernel[6] * in[(x+1) + (y-1)*data_size_X]
+				                        + kernel[3] * in[(x+1) + (y)*data_size_X]
 				                        + kernel[0] * in[(x+1) + (y+1)*data_size_X];
 		}
 	}
