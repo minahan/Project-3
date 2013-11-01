@@ -81,7 +81,7 @@ int conv2D(float* in, float* out, int data_size_X, int data_size_Y,
 		                        + kernel[6] * in[(x-1) + (y+1)*data_size_X]
 		                        + kernel[3] * in[(x) + (y+1)*data_size_X]
 		                        + kernel[0] * in[(x+1) + (y+1)*data_size_X];
-	printf("LC: elt: %d, value: %f \n", x + (y)*data_size_X, out[x + (y)*data_size_X]);
+	//printf("LC: elt: %d, value: %f \n", x + (y)*data_size_X, out[x + (y)*data_size_X]);
 	}
 	//top row
 	x = 0;
@@ -93,19 +93,19 @@ int conv2D(float* in, float* out, int data_size_X, int data_size_Y,
 		                        + kernel[1] * in[(x+1) + (y)*data_size_X]
 		                        + kernel[3] * in[(x) + (y+1)*data_size_X]
 		                        + kernel[0] * in[(x+1) + (y+1)*data_size_X];
-	printf("TR: elt: %d, value: %f \n", x + (y)*data_size_X, out[x + (y)*data_size_X]);
+	//printf("TR: elt: %d, value: %f \n", x + (y)*data_size_X, out[x + (y)*data_size_X]);
 	}
 	//bottom row
     x = data_size_X-1;
     for (y = 1; y < data_size_Y-1; y++) {
-		out[x-1 + (y)*data_size_X] = 
+		out[x + (y)*data_size_X] = 
 								kernel[8] * in[(x-1) + (y-1)*data_size_X]
 		                        + kernel[5] * in[(x) + (y-1)*data_size_X]        
 		                        + kernel[7] * in[(x-1) + (y)*data_size_X]
 		                        + kernel[4] * in[(x) + (y)*data_size_X]
 		                        + kernel[6] * in[(x-1) + (y+1)*data_size_X]
 		                        + kernel[3] * in[(x) + (y+1)*data_size_X];
-	printf("BR: elt: %d, value: %f \n", x + (y)*data_size_X, out[x + (y)*data_size_X]);
+	//printf("BR: elt: %d, value: %f \n", x + (y)*data_size_X, out[x + (y)*data_size_X]);
 	}
     //right column
     y = data_size_Y-1;
@@ -117,7 +117,7 @@ int conv2D(float* in, float* out, int data_size_X, int data_size_Y,
 		                        + kernel[7] * in[(x-1) + (y)*data_size_X]
 		                        + kernel[4] * in[(x) + (y)*data_size_X]
 		                        + kernel[1] * in[(x+1) + (y)*data_size_X];
-	printf("RC: elt: %d, value: %f \n", x + (y)*data_size_X, out[x + (y)*data_size_X]);
+	//printf("RC: elt: %d, value: %f \n", x + (y)*data_size_X, out[x + (y)*data_size_X]);
 	}
 
 	//for the inner parts of the image
@@ -131,7 +131,7 @@ int conv2D(float* in, float* out, int data_size_X, int data_size_Y,
 	__m128 k3 = _mm_set_ps1(kernel[3]);
 	__m128 k0 = _mm_set_ps1(kernel[0]);
 
-	for(int y = 1; y < data_size_Y-1-1; y++) { // the y coordinate of theoutput location we're focusing on
+	for(int y = 1; y < data_size_Y-1; y++) { // the y coordinate of theoutput location we're focusing on
 		int x;
 		for(x = 1; x < data_size_X-4-1; x+=4) { // the x coordinate of the output location we're focusing on
 		//*remember to flip the kernel coordinates
@@ -170,7 +170,7 @@ int conv2D(float* in, float* out, int data_size_X, int data_size_Y,
 		}
 		//the remaining pixels outside the multiple of 4
 		//#pragma omp parallel for
-		for (; x < data_size_X - 1-1; x++) {
+		for (; x < data_size_X - 1; x++) {
 			out[(x) + (y)*data_size_X] =
 				                          kernel[8] * in[(x-1) + (y-1)*data_size_X]
 				                        + kernel[5] * in[(x) + (y-1)*data_size_X]        
